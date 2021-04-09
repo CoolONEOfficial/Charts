@@ -270,7 +270,7 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                 #if os(OSX)
                 let bezierPath = NSBezierPath(roundedRect: barRect, xRadius: dataSet.barCornerRadius, yRadius: dataSet.barCornerRadius)
                 #else
-                let bezierPath = UIBezierPath(roundedRect: barRect, cornerRadius: dataSet.cornerRadius)
+                let bezierPath = UIBezierPath(roundedRect: barRect, cornerRadius: dataSet.barCornerRadius)
                 #endif
                 
                 context.addPath(bezierPath.cgPath)
