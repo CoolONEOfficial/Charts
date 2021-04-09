@@ -12,10 +12,11 @@
 import Foundation
 import CoreGraphics
 
-#if !os(OSX)
+#if os(OSX)
+    import AppKit
+#else
     import UIKit
 #endif
-
 
 open class HorizontalBarChartRenderer: BarChartRenderer
 {
@@ -265,8 +266,19 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                 context.setFillColor(dataSet.color(atIndex: j).cgColor)
             }
 
-            context.fill(barRect)
-
+            if dataSet.barCornerRadius > 0 {
+                #if os(OSX)
+                let bezierPath = NSBezierPath(roundedRect: barRect, xRadius: dataSet.barCornerRadius, yRadius: dataSet.barCornerRadius)
+                #else
+                let bezierPath = UIBezierPath(roundedRect: barRect, cornerRadius: dataSet.cornerRadius)
+                #endif
+                
+                context.addPath(bezierPath.cgPath)
+                context.drawPath(using: .fill)
+            } else {
+                context.fill(barRect)
+            }
+            
             if drawBorder
             {
                 context.setStrokeColor(borderColor.cgColor)

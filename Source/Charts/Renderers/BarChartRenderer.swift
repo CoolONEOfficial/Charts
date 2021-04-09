@@ -12,7 +12,9 @@
 import Foundation
 import CoreGraphics
 
-#if !os(OSX)
+#if os(OSX)
+    import AppKit
+#else
     import UIKit
 #endif
 
@@ -379,7 +381,18 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                 context.setFillColor(dataSet.color(atIndex: j).cgColor)
             }
             
-            context.fill(barRect)
+            if dataSet.barCornerRadius > 0 {
+                #if os(OSX)
+                let bezierPath = NSBezierPath(roundedRect: barRect, xRadius: dataSet.barCornerRadius, yRadius: dataSet.barCornerRadius)
+                #else
+                let bezierPath = UIBezierPath(roundedRect: barRect, cornerRadius: dataSet.cornerRadius)
+                #endif
+                
+                context.addPath(bezierPath.cgPath)
+                context.drawPath(using: .fill)
+            } else {
+                context.fill(barRect)
+            }
             
             if drawBorder
             {
@@ -833,3 +846,34 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
         return element
     }
 }
+
+#if os(OSX)
+extension NSBezierPath {
+
+  var cgPath: CGPath {
+    let path = CGMutablePath()
+    var points = [CGPoint](repeating: .zero, count: 3)
+    for i in 0 ..< self.elementCount {
+      let type = self.element(at: i, associatedPoints: &points)
+
+      switch type {
+      case .moveTo:
+        path.move(to: points[0])
+
+      case .lineTo:
+        path.addLine(to: points[0])
+
+      case .curveTo:
+        path.addCurve(to: points[2], control1: points[0], control2: points[1])
+
+      case .closePath:
+        path.closeSubpath()
+
+      @unknown default:
+        break
+      }
+    }
+    return path
+  }
+}
+#endif
